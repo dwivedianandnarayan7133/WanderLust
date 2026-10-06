@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+app.set("trust proxy", 1);
 const mongoose = require("mongoose");
 const Listing = require("./models/listing.js")
 const Review = require("./models/review.js");
