@@ -22,6 +22,7 @@
                     <span>/ night</span>
                 </p>
                 <% const isInterested = currentUser && listing.interestedUsers.some((userId) => userId.equals(currentUser._id)); %>
+                <% const canManageListing = currentUser && listing.owner && listing.owner.equals(currentUser._id); %>
                 <% if (currentUser) { %>
                     <form action="/listings/<%= listing._id %>/interest" method="POST" class="detail-interest-form">
                         <input type="hidden" name="returnTo" value="/listings/<%= listing._id %>">
@@ -37,16 +38,27 @@
                     </a>
                 <% } %>
                 <p class="interest-count"><%= listing.interestedUsers.length %> interested</p>
-                <a href="/listings/<%= listing._id %>/edit" class="btn edit-btn detail-edit-btn">
-                    <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
-                    Edit listing
-                </a>
-                <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
-                    <button type="submit" class="btn btn-outline-danger detail-delete-btn">
+                <% if (canManageListing) { %>
+                    <a href="/listings/<%= listing._id %>/edit" class="btn edit-btn detail-edit-btn">
+                        <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                        Edit listing
+                    </a>
+                    <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
+                        <button type="submit" class="btn btn-outline-danger detail-delete-btn">
+                            <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                            Delete listing
+                        </button>
+                    </form>
+                <% } else if (!currentUser && listing.owner) { %>
+                    <a href="/login?returnTo=%2Flistings%2F<%= listing._id %>%2Fedit" class="btn edit-btn detail-edit-btn">
+                        <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                        Sign in to edit
+                    </a>
+                    <a href="/login?returnTo=%2Flistings%2F<%= listing._id %>" class="btn btn-outline-danger detail-delete-btn">
                         <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
-                        Delete listing
-                    </button>
-                </form>
+                        Sign in to delete
+                    </a>
+                <% } %>
             </section>
         </aside>
 

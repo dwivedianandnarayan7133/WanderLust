@@ -9,9 +9,9 @@
                 <%= alllistings.length %> <%= alllistings.length === 1 ? "stay" : "stays" %> to explore
             </p>
         </div>
-        <a href="/listings/new" class="btn add-btn listing-create-btn">
+        <a href="<%= currentUser ? '/listings/new' : '/login?returnTo=%2Flistings%2Fnew' %>" class="btn add-btn listing-create-btn">
             <i class="fa-solid fa-plus" aria-hidden="true"></i>
-            Add a listing
+            <%= currentUser ? "Add a listing" : "Sign in to add a listing" %>
         </a>
     </header>
 
@@ -65,7 +65,7 @@
             <i class="fa-regular fa-compass" aria-hidden="true"></i>
             <h2>No listings yet</h2>
             <p>Add the first stay to get started.</p>
-            <a href="/listings/new" class="btn add-btn">Create a listing</a>
+            <a href="<%= currentUser ? '/listings/new' : '/login?returnTo=%2Flistings%2Fnew' %>" class="btn add-btn"><%= currentUser ? "Create a listing" : "Sign in to add a listing" %></a>
         </section>
     <% } %>
 </main>

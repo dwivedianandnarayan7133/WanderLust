@@ -71,11 +71,22 @@ const safeReturnTo = (value, fallback = "/listings") => {
 
 const requireLogin = (req, res, next) => {
     if (!req.isAuthenticated()) {
-        const returnTo = safeReturnTo(req.body.returnTo, `/listings/${req.params.id}`);
+        const returnTo = safeReturnTo(req.body?.returnTo || req.query.returnTo, req.originalUrl);
         return res.redirect(`/login?returnTo=${encodeURIComponent(returnTo)}`);
     }
     next();
 };
+
+const requireListingOwner = wrapAsync(async (req, res, next) => {
+    const listing = await Listing.findById(req.params.id);
+    if (!listing) throw new ExpressError(404, "Listing not found");
+    if (!listing.owner || !listing.owner.equals(req.user._id)) {
+        throw new ExpressError(403, "You can only manage listings you created.");
+    }
+
+    req.listing = listing;
+    next();
+});
 
 app.get('/',(req,res)=>{
     res.redirect("/listings");
@@ -179,7 +190,7 @@ app.post("/logout", (req, res, next) => {
 });
 
 //new route
-app.get("/listings/new",(req,res)=>{
+app.get("/listings/new", requireLogin, (req,res)=>{
     res.render("listings/new.ejs");
 });
 
@@ -208,7 +219,7 @@ app.post("/listings/:id/interest", requireLogin, wrapAsync(async (req, res) => {
 
 //create route
 // create route
-app.post("/listings",validateListing, wrapAsync(async (req, res,next) => {
+app.post("/listings", requireLogin, validateListing, wrapAsync(async (req, res,next) => {
         const listingData = req.body.listing;
 
     if (
@@ -220,7 +231,7 @@ app.post("/listings",validateListing, wrapAsync(async (req, res,next) => {
     }
 
 
-    const newListing = new Listing(listingData);
+    const newListing = new Listing({ ...listingData, owner: req.user._id });
 
 
     await newListing.save();
@@ -230,27 +241,29 @@ app.post("/listings",validateListing, wrapAsync(async (req, res,next) => {
 );
 
 //edit route
-app.get("/listings/:id/edit",async (req,res)=>{
-    let {id} = req.params;
-    const listing = await Listing.findById(id);
-    res.render("listings/edit.ejs",{listing});
+app.get("/listings/:id/edit", requireLogin, requireListingOwner, (req,res)=>{
+    res.render("listings/edit.ejs", { listing: req.listing });
 });
 
 //upadte route
-app.put("/listings/:id", async (req,res)=>{
-    let {id} = req.params;
-    await Listing.findByIdAndUpdate(id, {...req.body.listing});
-    res.redirect(`/listings/${id}`);
-});
+app.put("/listings/:id", requireLogin, requireListingOwner, validateListing, wrapAsync(async (req,res)=>{
+    const listingData = { ...req.body.listing };
+    delete listingData.owner;
+
+    if (listingData.image && (!listingData.image.url || listingData.image.url.trim() === "")) {
+        delete listingData.image;
+    }
+
+    Object.assign(req.listing, listingData);
+    await req.listing.save();
+    res.redirect(`/listings/${req.listing._id}`);
+}));
 
 //delete route
-app.delete("/listings/:id",async (req,res)=>{
-    let {id} = req.params;
-    let deletedListing = await Listing.findByIdAndDelete(id);
-    console.log(deletedListing);
+app.delete("/listings/:id", requireLogin, requireListingOwner, wrapAsync(async (req,res)=>{
+    await req.listing.deleteOne();
     res.redirect("/listings");
-
-});
+}));
 
 //Reviews
 //Post route for reviews
