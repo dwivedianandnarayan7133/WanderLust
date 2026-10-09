@@ -11,6 +11,7 @@
     </header>
 
     <form method="POST" action="/listings" novalidate class="needs-validation listing-form">
+        <input type="hidden" name="returnTo" value="/listings/new">
         <div class="mb-3">
             <label for="title" class="form-label">Listing title</label>
             <input type="text" id="title" name="listing[title]" placeholder="e.g. Ocean-view cottage" class="form-control" required>

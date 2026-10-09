@@ -39,10 +39,21 @@
 
             </ul>
 
+            <form action="/listings" method="GET" role="search" class="d-flex destination-search-form my-2 my-md-0">
+                <label class="visually-hidden" for="destination-search">Search destinations</label>
+                <input id="destination-search" name="q" type="search" class="form-control" value="<%= searchQuery || '' %>" placeholder="Destination, city, country" aria-label="Search destinations">
+                <button class="btn btn-outline-secondary" type="submit" aria-label="Search">
+                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                </button>
+            </form>
+
             <ul class="navbar-nav auth-nav align-items-md-center">
                 <% if (currentUser) { %>
                     <li class="nav-item">
                         <span class="nav-link navbar-user-name">Hi, <%= currentUser.username %></span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/bookings">My bookings</a>
                     </li>
                     <li class="nav-item">
                         <form action="/logout" method="POST">

@@ -1,0 +1,32 @@
+<% layout("/layouts/boilerplate") %>
+
+<main class="booking-detail-page">
+    <a href="/bookings" class="detail-back-link">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        My bookings
+    </a>
+
+    <header class="listing-form-heading">
+        <p class="detail-eyebrow">BOOKING <%= booking.status.toUpperCase() %></p>
+        <h1><%= booking.listing ? booking.listing.title : "Your reservation" %></h1>
+        <% if (booking.listing) { %>
+            <p><%= booking.listing.location %>, <%= booking.listing.country %></p>
+        <% } %>
+    </header>
+
+    <section class="booking-summary">
+        <dl>
+            <div><dt>Check-in</dt><dd><%= booking.checkIn.toLocaleDateString() %></dd></div>
+            <div><dt>Check-out</dt><dd><%= booking.checkOut.toLocaleDateString() %></dd></div>
+            <div><dt>Guests</dt><dd><%= booking.guests %></dd></div>
+            <div><dt>Length of stay</dt><dd><%= booking.nights %> nights</dd></div>
+            <div><dt>Price per night</dt><dd>&#8377;<%= booking.pricePerNight.toLocaleString("en-IN") %></dd></div>
+            <div><dt>Total</dt><dd><strong>&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %></strong></dd></div>
+        </dl>
+        <% if (booking.status === "confirmed" && booking.checkIn > new Date()) { %>
+            <form action="/bookings/<%= booking._id %>/cancel" method="POST" onsubmit="return confirm('Cancel this booking?')">
+                <button type="submit" class="btn btn-outline-danger">Cancel booking</button>
+            </form>
+        <% } %>
+    </section>
+</main>

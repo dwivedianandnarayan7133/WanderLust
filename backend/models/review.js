@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { create } = require("./listing");
 const Schema = mongoose.Schema;
 
 const reviewSchema = new Schema({
@@ -7,6 +6,10 @@ const reviewSchema = new Schema({
         type: String,
         required: true,
         trim: true,
+    },
+    author: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
     },
     comment: String,
     rating:{

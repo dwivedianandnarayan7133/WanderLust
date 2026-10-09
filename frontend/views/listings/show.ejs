@@ -22,7 +22,7 @@
                     <span>/ night</span>
                 </p>
                 <% const isInterested = currentUser && listing.interestedUsers.some((userId) => userId.equals(currentUser._id)); %>
-                <% const canManageListing = currentUser && listing.owner && listing.owner.equals(currentUser._id); %>
+                <% const canManageListing = currentUser && listing.owner && String(listing.owner._id || listing.owner) === String(currentUser._id); %>
                 <% if (currentUser) { %>
                     <form action="/listings/<%= listing._id %>/interest" method="POST" class="detail-interest-form">
                         <input type="hidden" name="returnTo" value="/listings/<%= listing._id %>">
@@ -38,12 +38,37 @@
                     </a>
                 <% } %>
                 <p class="interest-count"><%= listing.interestedUsers.length %> interested</p>
+                <div class="booking-panel">
+                    <h2>Book this stay</h2>
+                    <% if (currentUser) { %>
+                        <form action="/listings/<%= listing._id %>/bookings" method="POST" class="booking-form">
+                            <input type="hidden" name="returnTo" value="/listings/<%= listing._id %>">
+                            <div class="mb-3">
+                                <label for="check-in" class="form-label">Check-in</label>
+                                <input id="check-in" type="date" name="booking[checkIn]" min="<%= new Date().toISOString().slice(0, 10) %>" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="check-out" class="form-label">Check-out</label>
+                                <input id="check-out" type="date" name="booking[checkOut]" min="<%= new Date().toISOString().slice(0, 10) %>" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="booking-guests" class="form-label">Guests</label>
+                                <input id="booking-guests" type="number" name="booking[guests]" min="1" max="20" value="1" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn add-btn w-100">Confirm booking</button>
+                        </form>
+                    <% } else { %>
+                        <a href="/login?returnTo=%2Flistings%2F<%= listing._id %>" class="btn add-btn w-100">Sign in to book</a>
+                    <% } %>
+                    <p class="booking-price-note">Final total is calculated from your stay dates.</p>
+                </div>
                 <% if (canManageListing) { %>
                     <a href="/listings/<%= listing._id %>/edit" class="btn edit-btn detail-edit-btn">
                         <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
                         Edit listing
                     </a>
                     <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
+                        <input type="hidden" name="returnTo" value="/listings/<%= listing._id %>">
                         <button type="submit" class="btn btn-outline-danger detail-delete-btn">
                             <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
                             Delete listing
@@ -70,6 +95,9 @@
             <section class="detail-description">
                 <h2>About this stay</h2>
                 <p><%= listing.description %></p>
+                <% if (listing.owner && listing.owner.username) { %>
+                    <p class="detail-owner">Hosted by <strong><%= listing.owner.username %></strong></p>
+                <% } %>
                 <p class="detail-location">
                     <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                     <%= listing.location %>, <%= listing.country %>
@@ -85,15 +113,12 @@
                     <span><%= listing.reviews.length %></span>
                 </div>
 
-                <form action="/listings/<%= listing._id %>/reviews" method="POST" novalidate class="needs-validation review-form">
-                    <h3>Leave a review</h3>
-                    <div class="review-form-grid">
-                        <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" id="username" name="review[username]" class="form-control" placeholder="Your name" required>
-                            <div class="invalid-feedback">Please enter a username.</div>
-                        </div>
-                        <div class="mb-3">
+                <% if (currentUser) { %>
+                    <form action="/listings/<%= listing._id %>/reviews" method="POST" novalidate class="needs-validation review-form">
+                        <input type="hidden" name="returnTo" value="/listings/<%= listing._id %>">
+                        <h3>Leave a review as <%= currentUser.username %></h3>
+                        <div class="review-form-grid">
+                            <div class="mb-3">
                             <label for="rating" class="form-label">Rating</label>
                             <select id="rating" name="review[rating]" class="form-select" required>
                                 <option value="" selected disabled>Select a rating</option>
@@ -104,22 +129,26 @@
                                 <option value="1">1 - Poor</option>
                             </select>
                             <div class="invalid-feedback">Please select a rating.</div>
+                            </div>
+                            <div class="mb-3 review-comment-field">
+                                <label for="comment" class="form-label">Comment</label>
+                                <textarea name="review[comment]" id="comment" rows="3" class="form-control" placeholder="How was your stay?" required></textarea>
+                                <div class="invalid-feedback">Please provide a comment.</div>
+                            </div>
                         </div>
-                        <div class="mb-3 review-comment-field">
-                            <label for="comment" class="form-label">Comment</label>
-                            <textarea name="review[comment]" id="comment" rows="3" class="form-control" placeholder="How was your stay?" required></textarea>
-                            <div class="invalid-feedback">Please provide a comment.</div>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn add-btn review-submit-btn">
-                        <i class="fa-regular fa-paper-plane" aria-hidden="true"></i>
-                        Submit review
-                    </button>
-                </form>
+                        <button type="submit" class="btn add-btn review-submit-btn">
+                            <i class="fa-regular fa-paper-plane" aria-hidden="true"></i>
+                            Submit review
+                        </button>
+                    </form>
+                <% } else { %>
+                    <a href="/login?returnTo=%2Flistings%2F<%= listing._id %>" class="btn add-btn review-submit-btn">Sign in to leave a review</a>
+                <% } %>
 
                 <% if (listing.reviews.length) { %>
                     <div class="row row-cols-1 row-cols-md-2 g-3 review-grid">
                         <% for (const review of listing.reviews) { %>
+                            <% const canManageReview = currentUser && review.author && String(review.author._id || review.author) === String(currentUser._id); %>
                             <div class="col">
                                 <article class="card review-card h-100">
                                     <div class="card-body">
@@ -128,9 +157,31 @@
                                             <span class="review-rating"><%= review.rating ? `${review.rating} / 5` : "Not rated" %></span>
                                         </div>
                                         <p class="card-text mb-0"><%= review.comment %></p>
-                                        <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST" class="mt-3">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete review</button>
-                                        </form>
+                                        <% if (canManageReview) { %>
+                                            <details class="review-edit mt-3">
+                                                <summary class="btn btn-sm btn-outline-secondary">Edit review</summary>
+                                                <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=PUT" method="POST" class="mt-3">
+                                                    <input type="hidden" name="returnTo" value="/listings/<%= listing._id %>">
+                                                    <div class="mb-2">
+                                                        <label for="rating-<%= review._id %>" class="form-label">Rating</label>
+                                                        <select id="rating-<%= review._id %>" name="review[rating]" class="form-select" required>
+                                                            <% for (let rating = 5; rating >= 1; rating--) { %>
+                                                                <option value="<%= rating %>" <%= review.rating === rating ? "selected" : "" %>><%= rating %> / 5</option>
+                                                            <% } %>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label for="comment-<%= review._id %>" class="form-label">Comment</label>
+                                                        <textarea id="comment-<%= review._id %>" name="review[comment]" rows="3" class="form-control" required><%= review.comment %></textarea>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-sm edit-btn">Save review</button>
+                                                </form>
+                                            </details>
+                                            <form action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST" class="mt-2">
+                                                <input type="hidden" name="returnTo" value="/listings/<%= listing._id %>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete review</button>
+                                            </form>
+                                        <% } %>
                                     </div>
                                 </article>
                             </div>

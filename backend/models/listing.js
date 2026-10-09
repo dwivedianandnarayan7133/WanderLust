@@ -42,6 +42,22 @@ const listingSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "User",
     }],
+
+    reservations: [{
+        booking: {
+            type: Schema.Types.ObjectId,
+            ref: "Booking",
+            required: true,
+        },
+        checkIn: {
+            type: Date,
+            required: true,
+        },
+        checkOut: {
+            type: Date,
+            required: true,
+        },
+    }],
 });
 
 const Listing = mongoose.model("Listing", listingSchema);

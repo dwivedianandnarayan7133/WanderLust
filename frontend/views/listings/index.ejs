@@ -4,7 +4,7 @@
     <header class="listing-page-header">
         <div>
             <p class="listing-eyebrow">WANDERLUST STAYS</p>
-            <h1>All listings</h1>
+            <h1><%= searchQuery ? `Stays in ${searchQuery}` : "All listings" %></h1>
             <p class="listing-count">
                 <%= alllistings.length %> <%= alllistings.length === 1 ? "stay" : "stays" %> to explore
             </p>
@@ -46,6 +46,9 @@
                         <a href="/listings/<%= listing._id %>" class="listing-link">
                             <div class="card-body listing-card-body">
                                 <h2 class="listing-title"><%= listing.title %></h2>
+                                <% if (listing.owner && listing.owner.username) { %>
+                                    <p class="listing-location">Hosted by <%= listing.owner.username %></p>
+                                <% } %>
                                 <p class="listing-location">
                                     <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                                     <%= listing.location %>, <%= listing.country %>
@@ -63,8 +66,8 @@
     <% } else { %>
         <section class="listing-empty-state">
             <i class="fa-regular fa-compass" aria-hidden="true"></i>
-            <h2>No listings yet</h2>
-            <p>Add the first stay to get started.</p>
+            <h2><%= searchQuery ? "No stays found" : "No listings yet" %></h2>
+            <p><%= searchQuery ? "Try another destination, city, or country." : "Add the first stay to get started." %></p>
             <a href="<%= currentUser ? '/listings/new' : '/login?returnTo=%2Flistings%2Fnew' %>" class="btn add-btn"><%= currentUser ? "Create a listing" : "Sign in to add a listing" %></a>
         </section>
     <% } %>

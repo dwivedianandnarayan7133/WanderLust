@@ -11,20 +11,29 @@ const listingSchema = Joi.object({
             filename: Joi.string().allow("", null),
             url: Joi.string().allow("", null)
         }).allow(null)
-    }).required()
+    }).required(),
+    returnTo: Joi.string().optional(),
 });
 module.exports = listingSchema;
 
 module.exports.reviewSchema = Joi.object({review: Joi.object({
-    username: Joi.string().trim().required(),
     rating: Joi.number().min(1).max(5).required(),
     comment: Joi.string().required()
-}).required()
+}).required(), returnTo: Joi.string().optional()
 })
 
 module.exports.registerSchema = Joi.object({
     username: Joi.string().trim().min(3).max(30).required(),
     email: Joi.string().trim().email().required(),
     password: Joi.string().min(8).required(),
+    returnTo: Joi.string().optional(),
+});
+
+module.exports.bookingSchema = Joi.object({
+    booking: Joi.object({
+        checkIn: Joi.date().iso().required(),
+        checkOut: Joi.date().iso().greater(Joi.ref("checkIn")).required(),
+        guests: Joi.number().integer().min(1).max(20).required(),
+    }).required(),
     returnTo: Joi.string().optional(),
 });

@@ -1,0 +1,40 @@
+<% layout("/layouts/boilerplate") %>
+
+<main class="bookings-page">
+    <header class="listing-page-header">
+        <div>
+            <p class="listing-eyebrow">YOUR TRIPS</p>
+            <h1>My bookings</h1>
+            <p class="listing-count"><%= bookings.length %> <%= bookings.length === 1 ? "reservation" : "reservations" %></p>
+        </div>
+        <a href="/listings" class="btn btn-outline-secondary">Explore stays</a>
+    </header>
+
+    <% if (bookings.length) { %>
+        <div class="booking-list">
+            <% for (const booking of bookings) { %>
+                <article class="booking-row">
+                    <div>
+                        <p class="detail-eyebrow"><%= booking.status %></p>
+                        <h2><a href="/bookings/<%= booking._id %>"><%= booking.listing ? booking.listing.title : "Listing no longer available" %></a></h2>
+                        <% if (booking.listing) { %>
+                            <p><%= booking.listing.location %>, <%= booking.listing.country %></p>
+                        <% } %>
+                        <p><%= booking.checkIn.toLocaleDateString() %> – <%= booking.checkOut.toLocaleDateString() %> · <%= booking.nights %> nights · <%= booking.guests %> guests</p>
+                    </div>
+                    <div class="booking-row-total">
+                        <strong>&#8377;<%= booking.totalPrice.toLocaleString("en-IN") %></strong>
+                        <span>Total</span>
+                    </div>
+                </article>
+            <% } %>
+        </div>
+    <% } else { %>
+        <section class="listing-empty-state">
+            <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+            <h2>No bookings yet</h2>
+            <p>Your confirmed stays will appear here.</p>
+            <a href="/listings" class="btn add-btn">Find a stay</a>
+        </section>
+    <% } %>
+</main>
